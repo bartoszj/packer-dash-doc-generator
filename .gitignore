@@ -1,6 +1,6 @@
 .idea/
 build/
 Gemfile.lock
-terraform/
-terraform-dash-doc-generator.iml
-terraform-website/
+packer/
+packer-dash-doc-generator.iml
+packer-website/

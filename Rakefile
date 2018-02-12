@@ -31,7 +31,7 @@ class Index
 
   def insert(type, path)
     doc = Nokogiri::HTML(File.open(path).read)
-    name = doc.title.sub(" - Terraform by HashiCorp", "").sub(/.*: (.*)/, "\\1")
+    name = doc.title.sub(" - Packer by HashiCorp", "").sub(/.*: (.*)/, "\\1")
     @db.execute <<-SQL, name: name, type: type, path: path
       INSERT OR IGNORE INTO searchIndex (name, type, path)
       VALUES(:name, :type, :path)
@@ -43,7 +43,7 @@ task default: [:clean, :build, :setup, :copy, :create_index, :package]
 
 task :clean do
   rm_rf "build"
-  rm_rf "Terraform.docset"
+  rm_rf "Packer.docset"
 end
 
 task :build do
@@ -61,32 +61,32 @@ task :build do
 end
 
 task :setup do
-  mkdir_p "Terraform.docset/Contents/Resources/Documents"
+  mkdir_p "Packer.docset/Contents/Resources/Documents"
 
   # Icon
   # at older docs there is no retina icon
   if File::exist? "source/assets/images/favicons/favicon-16x16.png" and File::exist? "source/assets/images/favicons/favicon-32x32.png"
-    cp "source/assets/images/favicons/favicon-16x16.png", "Terraform.docset/icon.png"
-    cp "source/assets/images/favicons/favicon-32x32.png", "Terraform.docset/icon@2x.png"
+    cp "source/assets/images/favicons/favicon-16x16.png", "Packer.docset/icon.png"
+    cp "source/assets/images/favicons/favicon-32x32.png", "Packer.docset/icon@2x.png"
   elsif File::exists? "source/assets/images/favicon.png"
-    cp "source/assets/images/favicon.png", "Terraform.docset/icon.png"
+    cp "source/assets/images/favicon.png", "Packer.docset/icon.png"
   else
-    cp "source/images/favicon.png", "Terraform.docset/icon.png"
+    cp "source/images/favicon.png", "Packer.docset/icon.png"
   end
 
   # Info.plist
-  File.open("Terraform.docset/Contents/Info.plist", "w") do |f|
+  File.open("Packer.docset/Contents/Info.plist", "w") do |f|
     f.write <<-XML
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
     <dict>
     <key>CFBundleIdentifier</key>
-    <string>terraform</string>
+    <string>packer</string>
     <key>CFBundleName</key>
-    <string>Terraform</string>
+    <string>Packer</string>
     <key>DocSetPlatformFamily</key>
-    <string>terraform</string>
+    <string>packer</string>
     <key>isDashDocset</key>
     <true/>
     <key>DashDocSetFamily</key>
@@ -94,7 +94,7 @@ task :setup do
     <key>dashIndexFilePath</key>
     <string>docs/index.html</string>
     <key>DashDocSetFallbackURL</key>
-    <string>https://www.terraform.io/</string>
+    <string>https://www.packer.io/</string>
     </dict>
 </plist>
     XML
@@ -107,7 +107,7 @@ task :copy do
 
   file_list.each do |path|
     source = "build/#{path}"
-    target = "Terraform.docset/Contents/Resources/Documents/#{path}"
+    target = "Packer.docset/Contents/Resources/Documents/#{path}"
 
     case
     when File.stat(source).directory?
@@ -117,7 +117,7 @@ task :copy do
     when source.match(/\.html$/)
       doc = Nokogiri::HTML(File.open(source).read)
 
-      doc.title = doc.title.sub(" - Terraform by HashiCorp", "")
+      doc.title = doc.title.sub(" - Packer by HashiCorp", "")
 
       doc.xpath("//a[contains(@class, 'anchor')]").each do |e|
         a = Nokogiri::XML::Node.new "a", doc
@@ -163,15 +163,15 @@ task :copy do
 end
 
 task :create_index do
-  index = Index.new("Terraform.docset/Contents/Resources/docSet.dsidx")
+  index = Index.new("Packer.docset/Contents/Resources/docSet.dsidx")
   index.reset
 
-  Dir.chdir("Terraform.docset/Contents/Resources/Documents") do
-    # example
-    Dir.glob("intro/examples/**/*")
+  Dir.chdir("Packer.docset/Contents/Resources/Documents") do
+    # packer-on-cicd
+    Dir.glob("guides/packer-on-cicd/**/*")
       .find_all{ |f| File.stat(f).file? }.each do |path|
 
-      index.insert "Sample", path
+      index.insert "Guide", path
     end
     # getting-started
     Dir.glob("intro/getting-started/**/*")
@@ -179,17 +179,17 @@ task :create_index do
 
       index.insert "Guide", path
     end
-    # backends
-    Dir.glob("docs/backends/**/*")
+    # basics
+    Dir.glob("docs/basics/**/*")
       .find_all{ |f| File.stat(f).file? }.each do |path|
 
-      index.insert "Environment", path
+      index.insert "Word", path
     end
-    # configuration
-    Dir.glob("docs/configuration/**/*")
+    # builders
+    Dir.glob("docs/builders/**/*")
       .find_all{ |f| File.stat(f).file? }.each do |path|
 
-      index.insert "Setting", path
+      index.insert "Builtin", path
     end
     # commands
     Dir.glob("docs/commands/**/*")
@@ -197,33 +197,29 @@ task :create_index do
 
       index.insert "Command", path
     end
-    # import
-    Dir.glob("docs/import/**/*")
+    # extending
+    Dir.glob("docs/extending/**/*")
       .find_all{ |f| File.stat(f).file? }.each do |path|
 
-      index.insert "Section", path
+      index.insert "Extension", path
     end
-    # state
-    Dir.glob("docs/state/**/*")
+    # install
+    Dir.glob("docs/install/**/*")
       .find_all{ |f| File.stat(f).file? }.each do |path|
 
-      index.insert "Instance", path
+      index.insert "Instruction", path
     end
-    # providers
-    Dir.glob("docs/providers/**/*")
+    # other
+    Dir.glob("docs/other/**/*")
       .find_all{ |f| File.stat(f).file? }.each do |path|
 
-      maybe_type_code = path.split("/").reverse.drop(1).first
+      index.insert "Mixin", path
+    end
+    # post-processors
+    Dir.glob("docs/post-processors/**/*")
+      .find_all{ |f| File.stat(f).file? }.each do |path|
 
-      if maybe_type_code == "r"
-        type = "Resource"
-      elsif maybe_type_code == "d"
-        type = "Directive"
-      else
-        type = "Provider"
-      end
-
-      index.insert type, path
+      index.insert "Procedure", path
     end
     # provisioners
     Dir.glob("docs/provisioners/**/*")
@@ -231,31 +227,19 @@ task :create_index do
 
       index.insert "Provisioner", path
     end
-    # modules
-    Dir.glob("docs/modules/**/*")
+    # templates
+    Dir.glob("docs/templates/**/*")
       .find_all{ |f| File.stat(f).file? }.each do |path|
 
-      index.insert "Module", path
-    end
-    # plugins
-    Dir.glob("docs/plugins/**/*")
-      .find_all{ |f| File.stat(f).file? }.each do |path|
-
-      index.insert "Plugin", path
-    end
-    # internals
-    Dir.glob("docs/internals/**/*")
-      .find_all{ |f| File.stat(f).file? }.each do |path|
-
-      index.insert "Protocol", path
+      index.insert "Macro", path
     end
   end
 end
 
 task :import do
-  sh "open Terraform.docset"
+  sh "open Packer.docset"
 end
 
 task :package do
-  sh "tar --exclude='.DS_Store' -cvzf Terraform.tgz Terraform.docset"
+  sh "tar --exclude='.DS_Store' -cvzf Packer.tgz Packer.docset"
 end
