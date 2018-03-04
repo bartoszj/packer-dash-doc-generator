@@ -7,7 +7,7 @@ This projects essence has been taken from [https://github.com/rolandjohann/terra
 
 ```bash
 rbenv install 2.5.0
-gem install bundler rake sqlite3
+gem install -N bundler rake sqlite3
 ```
 
 ### Build
