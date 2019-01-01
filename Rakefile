@@ -1,6 +1,6 @@
 require "nokogiri"
 require "erb"
-require 'sqlite3'
+require "sqlite3"
 
 class Index
   attr_accessor :db

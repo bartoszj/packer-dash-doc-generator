@@ -1,13 +1,14 @@
 Packer Dash Docs Generator
-=======================
+==========================
 
 This projects essence has been taken from [https://github.com/rolandjohann/terraform-dash-doc-generator](https://github.com/rolandjohann/terraform-dash-doc-generator) and updated to generate Packer docs.
 
 ### Installation
 
 ```bash
-rbenv install 2.5.0
-gem install -N bundler rake sqlite3
+rbenv install 2.5.3
+gem install -N bundler
+bundle install
 ```
 
 ### Build
