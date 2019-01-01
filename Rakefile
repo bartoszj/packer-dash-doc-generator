@@ -167,67 +167,67 @@ task :create_index do
   index.reset
 
   Dir.chdir("Packer.docset/Contents/Resources/Documents") do
-    # packer-on-cicd
+    # guides/packer-on-cicd
     Dir.glob("guides/packer-on-cicd/**/*")
       .find_all{ |f| File.stat(f).file? }.each do |path|
 
       index.insert "Guide", path
     end
-    # getting-started
+    # intro/getting-started
     Dir.glob("intro/getting-started/**/*")
       .find_all{ |f| File.stat(f).file? }.each do |path|
 
       index.insert "Guide", path
     end
-    # basics
+    # docs/basics
     Dir.glob("docs/basics/**/*")
       .find_all{ |f| File.stat(f).file? }.each do |path|
 
       index.insert "Word", path
     end
-    # builders
+    # docs/builders
     Dir.glob("docs/builders/**/*")
       .find_all{ |f| File.stat(f).file? }.each do |path|
 
       index.insert "Builtin", path
     end
-    # commands
+    # docs/commands
     Dir.glob("docs/commands/**/*")
       .find_all{ |f| File.stat(f).file? }.each do |path|
 
       index.insert "Command", path
     end
-    # extending
+    # docs/extending
     Dir.glob("docs/extending/**/*")
       .find_all{ |f| File.stat(f).file? }.each do |path|
 
       index.insert "Extension", path
     end
-    # install
+    # docs/install
     Dir.glob("docs/install/**/*")
       .find_all{ |f| File.stat(f).file? }.each do |path|
 
       index.insert "Instruction", path
     end
-    # other
+    # docs/other
     Dir.glob("docs/other/**/*")
       .find_all{ |f| File.stat(f).file? }.each do |path|
 
       index.insert "Mixin", path
     end
-    # post-processors
+    # docs/post-processors
     Dir.glob("docs/post-processors/**/*")
       .find_all{ |f| File.stat(f).file? }.each do |path|
 
       index.insert "Procedure", path
     end
-    # provisioners
+    # docs/provisioners
     Dir.glob("docs/provisioners/**/*")
       .find_all{ |f| File.stat(f).file? }.each do |path|
 
       index.insert "Provisioner", path
     end
-    # templates
+    # docs/templates
     Dir.glob("docs/templates/**/*")
       .find_all{ |f| File.stat(f).file? }.each do |path|
 
