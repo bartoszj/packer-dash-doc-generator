@@ -23,12 +23,12 @@ mkdir -p "${BUILD_PATH}"
 git clone "https://github.com/hashicorp/packer.git" || true
 cd "${PACKER_PATH}"
 git fetch --all --prune
+git clean -fdx
 git checkout -- .
 git checkout "v${TAG}"
 
 # Install gems
 cd "${WEBSITE_PATH}"
-bundle install
 
 rm Rakefile || true
 # cp "${CWD}/Rakefile" .

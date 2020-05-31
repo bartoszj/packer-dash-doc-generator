@@ -1,6 +1,7 @@
 require "nokogiri"
 require "erb"
 require "sqlite3"
+require "pathname"
 
 class Index
   attr_accessor :db
@@ -47,17 +48,7 @@ task :clean do
 end
 
 task :build do
-  config_extensions = ["activate :relative_assets", "set :relative_links, true", "set :strip_index_file, false"]
-  File.open("config.rb", "a") do |f|
-    config_extensions.each do |ce|
-      if File.readlines("config.rb").grep(Regexp.new ce).size == 0
-        f.puts ce
-      end
-    end
-  end
-
-  sh "bundle"
-  sh "bundle exec middleman build"
+  sh "make build"
 end
 
 task :setup do
@@ -65,13 +56,11 @@ task :setup do
 
   # Icon
   # at older docs there is no retina icon
-  if File::exist? "source/assets/images/favicons/favicon-16x16.png" and File::exist? "source/assets/images/favicons/favicon-32x32.png"
-    cp "source/assets/images/favicons/favicon-16x16.png", "Packer.docset/icon.png"
-    cp "source/assets/images/favicons/favicon-32x32.png", "Packer.docset/icon@2x.png"
-  elsif File::exists? "source/assets/images/favicon.png"
-    cp "source/assets/images/favicon.png", "Packer.docset/icon.png"
+  if File::exist? "out/img/favicons/favicon-16x16.png" and File::exist? "out/img/favicons/favicon-32x32.png"
+    cp "out/img/favicons/favicon-16x16.png", "Packer.docset/icon.png"
+    cp "out/img/favicons/favicon-32x32.png", "Packer.docset/icon@2x.png"
   else
-    cp "source/images/favicon.png", "Packer.docset/icon.png"
+    abort("Icon not found")
   end
 
   # Info.plist
@@ -103,10 +92,10 @@ end
 
 task :copy do
   file_list = []
-  Dir.chdir("build") { file_list = Dir.glob("**/*").sort }
+  Dir.chdir("out") { file_list = Dir.glob("**/*").sort }
 
   file_list.each do |path|
-    source = "build/#{path}"
+    source = "out/#{path}"
     target = "Packer.docset/Contents/Resources/Documents/#{path}"
 
     case
@@ -117,7 +106,16 @@ task :copy do
     when source.match(/\.html$/)
       doc = Nokogiri::HTML(File.open(source).read)
 
-      doc.title = doc.title.sub(" - Packer by HashiCorp", "")
+      doc.title = doc.title.sub(" | Packer by HashiCorp", "")
+      doc.title = doc.title.sub(" - Extending", "")
+      doc.title = doc.title.sub(" - Other", "")
+      doc.title = doc.title.sub(" - Post-Processors", "")
+      doc.title = doc.title.sub(" - Post-Processor", "")
+      doc.title = doc.title.sub(" - Builders", "")
+      doc.title = doc.title.sub(" - Commands", "")
+      doc.title = doc.title.sub(" - Provisioners", "")
+      doc.title = doc.title.sub(" - Templates", "")
+      doc.title = doc.title.sub(" - Getting Started", "")
 
       doc.xpath("//a[contains(@class, 'anchor')]").each do |e|
         a = Nokogiri::XML::Node.new "a", doc
@@ -127,32 +125,41 @@ task :copy do
         e.previous = a
       end
 
+      doc.xpath("//link[starts-with(@href, '/')]").each do |e|
+        e["href"] = Pathname.new(e["href"]).relative_path_from(Pathname.new("/#{path}").dirname).to_s
+      end
+
+      doc.xpath("//a[starts-with(@href, '/')]").each do |e|
+        e["href"] = Pathname.new(e["href"]).relative_path_from(Pathname.new("/#{path}").dirname).to_s
+      end
+
       doc.xpath('//script').each do |script|
         if script.text != ""
           script.remove
         end
       end
-      doc.xpath("id('header')").each do |e|
+      doc.xpath("//div[contains(@class, 'g-mega-nav')]").each do |e|
         e.remove
       end
-      doc.xpath("//div[contains(@class, 'mega-nav-sandbox')]").each do |e|
+      doc.xpath("//nav").each do |e|
         e.remove
       end
-      doc.xpath("//div[contains(@class, 'docs-sidebar')]").each do |e|
-        e.parent.remove
-      end
-      doc.xpath("id('docs-sidebar')").each do |e|
+      doc.xpath("//div[contains(@class, 'g-product-subnav')]").each do |e|
         e.remove
       end
-      doc.xpath("id('footer')").each do |e|
+      doc.xpath("id('sidebar')").each do |e|
+        e.remove
+      end
+      doc.xpath("id('edit-this-page')").each do |e|
+        e.remove
+      end
+      doc.xpath("//footer").each do |e|
         e.remove
       end
 
-      doc.xpath('//div[@id="inner"]/h1').each do |e|
-        e["style"] = "margin-top: 0px"
-      end
-      doc.xpath("//div[contains(@role, 'main')]").each do |e|
-        e["style"] = "width: 100%"
+      doc.xpath("//div[contains(@class, 'g-container')]").each do |e|
+        e["class"] = nil
+        e["style"] = "margin-top: 30px; margin-left: 30px; margin-right: 30px;"
       end
 
       File.open(target, "w") { |f| f.write doc }
@@ -179,12 +186,6 @@ task :create_index do
 
       index.insert "Guide", path
     end
-    # docs/basics
-    Dir.glob("docs/basics/**/*")
-      .find_all{ |f| File.stat(f).file? }.each do |path|
-
-      index.insert "Word", path
-    end
     # docs/builders
     Dir.glob("docs/builders/**/*")
       .find_all{ |f| File.stat(f).file? }.each do |path|
@@ -197,6 +198,30 @@ task :create_index do
 
       index.insert "Command", path
     end
+    # docs/communicators
+    Dir.glob("docs/communicators/**/*")
+      .find_all{ |f| File.stat(f).file? }.each do |path|
+
+      index.insert "Delegate", path
+    end
+    # docs/core-configuration
+    Dir.glob("docs/core-configuration/**/*")
+      .find_all{ |f| File.stat(f).file? }.each do |path|
+
+      index.insert "Mixin", path
+    end
+    # docs/debugging
+    Dir.glob("docs/debugging/**/*")
+      .find_all{ |f| File.stat(f).file? }.each do |path|
+
+      index.insert "Mixin", path
+    end
+    # docs/environment-variables
+    Dir.glob("docs/environment-variables/**/*")
+      .find_all{ |f| File.stat(f).file? }.each do |path|
+
+      index.insert "Mixin", path
+    end
     # docs/extending
     Dir.glob("docs/extending/**/*")
       .find_all{ |f| File.stat(f).file? }.each do |path|
@@ -208,12 +233,6 @@ task :create_index do
       .find_all{ |f| File.stat(f).file? }.each do |path|
 
       index.insert "Instruction", path
-    end
-    # docs/other
-    Dir.glob("docs/other/**/*")
-      .find_all{ |f| File.stat(f).file? }.each do |path|
-
-      index.insert "Mixin", path
     end
     # docs/post-processors
     Dir.glob("docs/post-processors/**/*")
@@ -232,6 +251,12 @@ task :create_index do
       .find_all{ |f| File.stat(f).file? }.each do |path|
 
       index.insert "Macro", path
+    end
+    # docs/terminology
+    Dir.glob("docs/terminology/**/*")
+      .find_all{ |f| File.stat(f).file? }.each do |path|
+
+      index.insert "Word", path
     end
   end
 end
