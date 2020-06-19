@@ -43,7 +43,7 @@ end
 task default: [:clean, :build, :setup, :copy, :create_index, :package]
 
 task :clean do
-  rm_rf "build"
+  rm_rf "out"
   rm_rf "Packer.docset"
 end
 
