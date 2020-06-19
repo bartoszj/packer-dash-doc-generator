@@ -20,3 +20,14 @@ To build execute command:
 ```
 
 Then move the docset into a proper directory.
+
+### Issues
+
+In case of error:
+
+```
+Error occurred prerendering page "/downloads". Read more: https://err.sh/next.js/prerender-error
+TypeError: Cannot read property 'builds' of undefined
+```
+
+Download the newest version of the `website/pages/downloads/index.jsx` file.
