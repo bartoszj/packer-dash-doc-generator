@@ -33,6 +33,7 @@ class Index
   def insert(type, path)
     doc = Nokogiri::HTML(File.open(path).read)
     name = doc.title.sub(" - Packer by HashiCorp", "").sub(/.*: (.*)/, "\\1")
+    raise "Empty name for #{path}" if name.empty?
     @db.execute <<-SQL, name: name, type: type, path: path
       INSERT OR IGNORE INTO searchIndex (name, type, path)
       VALUES(:name, :type, :path)
@@ -48,6 +49,7 @@ task :clean do
 end
 
 task :build do
+  sh "sed -i '' 's|npm run static\$|bash -c \"npm install --no-audit; npm run static\"|g' Makefile"
   sh "make build"
 end
 
