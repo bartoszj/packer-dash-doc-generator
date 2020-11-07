@@ -49,7 +49,6 @@ task :clean do
 end
 
 task :build do
-  sh "sed -i '' 's|npm run static\$|bash -c \"npm install --no-audit; npm run static\"|g' Makefile"
   sh "make build"
 end
 
