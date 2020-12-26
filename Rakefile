@@ -139,6 +139,9 @@ task :copy do
           script.remove
         end
       end
+      doc.xpath("//header").each do |e|
+        e.remove
+      end
       doc.xpath("//div[contains(@class, 'g-mega-nav')]").each do |e|
         e.remove
       end
