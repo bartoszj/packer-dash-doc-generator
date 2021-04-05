@@ -40,8 +40,10 @@ ln -s "${CWD}/Rakefile" || true
 # Build
 if [[ ${OSTYPE} == "linux-gnu"* ]]; then
   sed -i'' 's|npm run static$|bash -c \"npm install; npm run static\"|g' Makefile
+  sed -i'' 's| && cp _redirects out/.||g' package.json
 else
   sed -i '' 's|npm run static$|bash -c \"npm install; npm run static\"|g' Makefile
+  sed -i '' 's| && cp _redirects out/.||g' package.json
 fi
 rake
 

@@ -100,6 +100,8 @@ task :copy do
     target = "Packer.docset/Contents/Resources/Documents/#{path}"
 
     case
+    when source.match(/\/_next\/data/)
+      next
     when File.stat(source).directory?
       mkdir_p target
     when source.match(/\.gz$/)
@@ -142,6 +144,9 @@ task :copy do
       doc.xpath("//header").each do |e|
         e.remove
       end
+      doc.xpath("//div[contains(@class, 'g-alert-banner')]").each do |e|
+        e.remove
+      end
       doc.xpath("//div[contains(@class, 'g-mega-nav')]").each do |e|
         e.remove
       end
@@ -166,7 +171,7 @@ task :copy do
 
       doc.xpath("//div[contains(@class, 'g-container')]").each do |e|
         e["class"] = nil
-        e["style"] = "margin-top: 30px; margin-left: 30px; margin-right: 30px;"
+        e["style"] = "margin-left: 30px; margin-right: 30px;"
       end
 
       File.open(target, "w") { |f| f.write doc }
