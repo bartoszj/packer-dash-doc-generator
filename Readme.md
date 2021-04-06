@@ -6,8 +6,7 @@ This projects essence has been taken from [https://github.com/rolandjohann/terra
 ### Installation
 
 ```bash
-rbenv install 2.5.3
-gem install -N bundler
+rbenv install 2.7.3
 bundle install
 ```
 
